@@ -38,13 +38,15 @@ class IssueStore:
         self._save(payload)
         return issue
 
-    def close(self, issue_id: int) -> dict[str, Any]:
+    def close(self, issue_id: int, *, reason: str | None = None) -> dict[str, Any]:
         payload = self._load()
         issue = self._require_issue(payload, issue_id)
         if issue["status"] == "closed":
             return issue
         issue["status"] = "closed"
         issue["closed_at"] = _now()
+        if reason is not None:
+            issue["close_reason"] = reason.strip()
         self._save(payload)
         return issue
 

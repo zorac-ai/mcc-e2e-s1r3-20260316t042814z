@@ -58,6 +58,18 @@ class CliTestCase(unittest.TestCase):
         self.assertEqual(len(issues), 1)
         self.assertEqual(issues[0]["id"], 1)
 
+    def test_close_with_reason(self) -> None:
+        self.run_json("add", "Fix the bug")
+        closed = self.run_json("close", "1", "--reason", "done")
+        self.assertEqual(closed["status"], "closed")
+        self.assertEqual(closed["close_reason"], "done")
+
+    def test_close_without_reason_has_no_close_reason_field(self) -> None:
+        self.run_json("add", "No reason needed")
+        closed = self.run_json("close", "1")
+        self.assertEqual(closed["status"], "closed")
+        self.assertNotIn("close_reason", closed)
+
     def test_missing_issue_returns_non_zero(self) -> None:
         result = subprocess.run(
             [sys.executable, "-m", "issue_tracker", "--db", str(self.db_path), "close", "999"],

@@ -24,6 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     close_parser = subparsers.add_parser("close", help="Close an issue")
     close_parser.add_argument("issue_id", type=int)
+    close_parser.add_argument("--reason", default=None, help="Optional reason for closing")
 
     # MCC-LIVE-E2E: parser anchor
 
@@ -40,7 +41,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "list":
         result = store.list(status=args.status)
     elif args.command == "close":
-        result = store.close(args.issue_id)
+        result = store.close(args.issue_id, reason=args.reason)
     # MCC-LIVE-E2E: command anchor
     else:
         parser.error(f"unknown command: {args.command}")
