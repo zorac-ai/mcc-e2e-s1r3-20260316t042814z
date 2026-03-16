@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -69,6 +70,25 @@ class CliTestCase(unittest.TestCase):
         closed = self.run_json("close", "1")
         self.assertEqual(closed["status"], "closed")
         self.assertNotIn("close_reason", closed)
+
+    def test_open_issue_has_null_closed_at(self) -> None:
+        created = self.run_json("add", "Still open")
+        self.assertIsNone(created["closed_at"])
+
+    def test_closed_at_is_valid_iso8601(self) -> None:
+        self.run_json("add", "Timestamp check")
+        closed = self.run_json("close", "1")
+        self.assertIsNotNone(closed["closed_at"])
+        parsed = datetime.fromisoformat(closed["closed_at"])
+        self.assertIsNotNone(parsed.tzinfo)
+
+    def test_closed_at_recorded_with_reason(self) -> None:
+        self.run_json("add", "With reason and timestamp")
+        closed = self.run_json("close", "1", "--reason", "completed")
+        self.assertEqual(closed["status"], "closed")
+        self.assertEqual(closed["close_reason"], "completed")
+        self.assertIsNotNone(closed["closed_at"])
+        datetime.fromisoformat(closed["closed_at"])
 
     def test_missing_issue_returns_non_zero(self) -> None:
         result = subprocess.run(
